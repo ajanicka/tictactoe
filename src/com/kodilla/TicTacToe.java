@@ -20,31 +20,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-
 public class TicTacToe extends Application {
 
     private Image imageback = new Image("file:resources/background.jpg");
     private boolean playable = false;
     private boolean playerTurn = false;
     private List<Tile> tilesList = new ArrayList<>();
-    Label winnerLabel = new Label();
-    Label whoStartsInfo = new Label();
-    int doneMovesIterator = 0;
-    Button whoStartsBtn = new Button();
+    private Label winnerLabel = new Label();
+    private Label infoLabel = new Label();
+    private int doneMovesIterator = 0;
+    private Button whoStartsBtn = new Button();
     boolean weHaveWinner = false;
 
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         BackgroundSize backgroundSize = new BackgroundSize(800, 800, true, true, true, false);
         BackgroundImage backgroundImage = new BackgroundImage(imageback, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.CENTER, backgroundSize);
         Background background = new Background(backgroundImage);
+
         Menu menu = new Menu("Menu");
         MenuItem menuItem1 = new MenuItem("New Game");
         MenuItem menuItem2 = new MenuItem("Save Game");
         MenuItem menuItem3 = new MenuItem("Load Game");
-
-
         menu.getItems().add(menuItem1);
         menu.getItems().add(menuItem2);
         menu.getItems().add(menuItem3);
@@ -53,44 +51,48 @@ public class TicTacToe extends Application {
         VBox vBox = new VBox(menuBar);
         Pane root = new Pane(vBox);
 
+        menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
         menuBar.getMenus().add(menu);
 
         menuItem1.setOnAction(event -> newGame());
         menuItem2.setOnAction(event -> saveGame());
         menuItem3.setOnAction(event -> loadGame());
 
-
         Scene scene = new Scene(root, 800, 800, Color.BLACK);
         root.setBackground(background);
+
+        infoLabel.setFont(Font.font("DialogInput", FontWeight.BOLD, 28));
+        winnerLabel.setFont(Font.font("DialogInput", FontWeight.BOLD, 40));
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 Tile tile = new Tile();
                 tile.setTranslateX(100 + i * 200);
                 tile.setTranslateY(100 + j * 200);
-
                 root.getChildren().add(tile);
                 tilesList.add(tile);
             }
         }
 
         HBox topPropertiesBox = new HBox(3);
-        topPropertiesBox.setLayoutY(20);
+        topPropertiesBox.setLayoutY(40);
         topPropertiesBox.setLayoutX(100);
         whoStartsBtn.setText("Who starts?");
         whoStartsBtn.setFont(Font.font("DialogInput", 20));
-
-        topPropertiesBox.getChildren().addAll(whoStartsBtn, whoStartsInfo);
+        topPropertiesBox.getChildren().addAll(whoStartsBtn, infoLabel);
 
         Random booleanRandom = new Random();
+
         whoStartsBtn.setOnMouseClicked(event ->
         {
             playerTurn = booleanRandom.nextBoolean();
+
             if (playerTurn) {
-                whoStartsInfo.setText("YOU!!");
+                infoLabel.setText("YOU!!");
             } else {
-                whoStartsInfo.setText("me.. it means: YOUR COMPUTER :)");
+                infoLabel.setText("YOUR COMPUTER :)");
             }
+
             whoStartsBtn.setDisable(true);
             playable = true;
 
@@ -99,12 +101,8 @@ public class TicTacToe extends Application {
             }
         });
 
-        whoStartsInfo.setFont(Font.font("DialogInput", FontWeight.BOLD, 24));
-        winnerLabel.setFont(Font.font("DialogInput", FontWeight.BOLD, 40));
-
         topPropertiesBox.getChildren().add(winnerLabel);
         root.getChildren().add(topPropertiesBox);
-
 
         primaryStage.setTitle("Tic Tac Toe");
         primaryStage.setScene(scene);
@@ -113,17 +111,14 @@ public class TicTacToe extends Application {
 
     private void loadGame() {
         FileReader fr = null;
-
         ArrayList<Character> savedGame = new ArrayList<>();
-
         newGame();
 
         try {
             fr = new FileReader("TicTacToeSavedGame.txt");
-
         } catch (FileNotFoundException e) {
             System.out.println("Loading File Warning: There is no file TicTacToeSavedGame.txt");
-            whoStartsInfo.setText("There is no saved game");
+            infoLabel.setText("There is no saved game");
         }
 
         int i;
@@ -134,7 +129,6 @@ public class TicTacToe extends Application {
                         break;
                     }
 
-                    System.out.print((char) i);
                     savedGame.add((char) i);
                 } catch (IOException e) {
                     System.out.println("Loading File Warning");
@@ -143,8 +137,8 @@ public class TicTacToe extends Application {
         }
 
         if (!savedGame.isEmpty()) {
-
             playable = true;
+
             for (int j = 0; j < 9; j++) {
                 if (!(savedGame.get(j).toString().equals(" "))) {
                     tilesList.get(j).text.setText(savedGame.get(j).toString());
@@ -154,38 +148,39 @@ public class TicTacToe extends Application {
             doneMovesIterator = savedGame.get(9);
             playerTurn = true;
             whoStartsBtn.setDisable(true);
-            whoStartsInfo.setText("Game loaded");
-        }
-        else {
-            if (whoStartsInfo.getText().equals("")) {
-                whoStartsInfo.setText("Problem with loading saved game");
+            infoLabel.setText("Game loaded");
+        } else {
+            if (infoLabel.getText().equals("")) {
+                infoLabel.setText("Problem with loading saved game");
             }
         }
-
     }
 
     private void saveGame() {
         if (!weHaveWinner && doneMovesIterator != 9 && doneMovesIterator > 0) {
             File file = new File("TicTacToeSavedGame.txt");
-
             FileWriter writer = null;
+
             try {
                 writer = new FileWriter(file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            String tileText = "";
+            String tileText;
+
             try {
                 for (int i = 0; i < 9; i++) {
                     tileText = tilesList.get(i).text.getText();
+
                     if (tileText.equals("")) {
                         writer.write(" ");
                     } else {
                         writer.write(tileText);
                     }
-                    whoStartsInfo.setText("Game saved");
+                    infoLabel.setText("Game saved");
                 }
+
                 writer.write("" + doneMovesIterator);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -197,7 +192,7 @@ public class TicTacToe extends Application {
             }
         } else {
             winnerLabel.setText("");
-            whoStartsInfo.setText("Saving is not possible now..");
+            infoLabel.setText("Saving is not possible now..");
         }
     }
 
@@ -208,7 +203,7 @@ public class TicTacToe extends Application {
         doneMovesIterator = 0;
         whoStartsBtn.setDisable(false);
         winnerLabel.setText("");
-        whoStartsInfo.setText("");
+        infoLabel.setText("");
     }
 
     private void clearBoard() {
@@ -268,7 +263,6 @@ public class TicTacToe extends Application {
             }
         }
 
-
         if (!weHaveWinner && !tilesList.get(2).text.getText().isEmpty()) {
             weHaveWinner = tilesList.get(2).text.getText().equals(tilesList.get(4).text.getText())
                     && tilesList.get(2).text.getText().equals(tilesList.get(6).text.getText());
@@ -279,7 +273,7 @@ public class TicTacToe extends Application {
         }
 
         if (weHaveWinner) {
-            whoStartsInfo.setText("");
+            infoLabel.setText("");
 
             playable = false;
             if (winner.equals("X")) {
@@ -288,13 +282,10 @@ public class TicTacToe extends Application {
                 winnerLabel.setText("Not this time :(");
             }
         } else if (doneMovesIterator == 9) {
-            whoStartsInfo.setText("");
-
+            infoLabel.setText("");
             winnerLabel.setText("Where is the winner?");
             playable = false;
         }
-
-
     }
 
     public static void main(String[] args) {
