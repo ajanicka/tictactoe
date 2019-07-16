@@ -3,7 +3,6 @@ package com.kodilla;
 import com.kodilla.GameApp.Tile;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-
 import java.util.List;
 import java.util.Random;
 
@@ -13,12 +12,12 @@ public class Game {
     private List<Tile> tilesList;
     private int index;
     private int doneMovesIterator;
-    private boolean weHaveWinner = false;
-    private boolean playable = false;
-    private boolean playerTurn = false;
+    private boolean weHaveWinner;
+    private boolean playable;
+    private boolean playerTurn;
     private Label infoLabel;
     private Label winnerLabel;
-    private Random booleanRandom = new Random();
+    private Random random = new Random();
 
     public Game(List<Tile> tilesList, Label infoLabel, Label winnerLabel, int doneMovesIterator) {
         this.tilesList = tilesList;
@@ -28,7 +27,7 @@ public class Game {
     }
 
     public void whoStarts(Button whoStartsBtn) {
-        playerTurn = booleanRandom.nextBoolean();
+        playerTurn = random.nextBoolean();
 
         if (playerTurn) {
             infoLabel.setText("YOU!!");
@@ -41,28 +40,16 @@ public class Game {
 
         if (!playerTurn) {
             computerMove();
+            checkGameStatus();
         }
     }
 
     public void computerMove() {
         if (playable && !playerTurn) {
             while (!playerTurn) {
-                Random random = new Random();
                 index = random.nextInt(9);
                 setO(index);
             }
-            checkGameStatus();
-        }
-    }
-
-    private boolean setO(int index) {
-        if (tilesList.get(index).text.getText().length() == 0) {
-            tilesList.get(index).text.setText("O");
-            doneMovesIterator++;
-            playerTurn = !playerTurn;
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -117,20 +104,7 @@ public class Game {
             }
         }
 
-        if (weHaveWinner) {
-            infoLabel.setText("");
-
-            playable = false;
-            if (winner.equals("X")) {
-                winnerLabel.setText("CONGRATULATIONS!!");
-            } else if (winner.equals("O")) {
-                winnerLabel.setText("Not this time :(");
-            }
-        } else if (doneMovesIterator == 9) {
-            infoLabel.setText("");
-            winnerLabel.setText("Where is the winner?");
-            playable = false;
-        }
+        setWinnerInfo(winner);
     }
 
     public boolean isWeHaveWinner() {
@@ -147,5 +121,30 @@ public class Game {
 
     public void setPlayerTurn(boolean b) {
         playerTurn = b;
+    }
+
+    private void setO(int index) {
+        if (tilesList.get(index).text.getText().length() == 0) {
+            tilesList.get(index).text.setText("O");
+            doneMovesIterator++;
+            playerTurn = !playerTurn;
+        }
+    }
+
+    private void setWinnerInfo(String winner) {
+        if (weHaveWinner) {
+            infoLabel.setText("");
+
+            playable = false;
+            if (winner.equals("X")) {
+                winnerLabel.setText("CONGRATULATIONS!!");
+            } else if (winner.equals("O")) {
+                winnerLabel.setText("Not this time :(");
+            }
+        } else if (doneMovesIterator == 9) {
+            infoLabel.setText("");
+            winnerLabel.setText("Where is the winner?");
+            playable = false;
+        }
     }
 }

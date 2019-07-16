@@ -2,8 +2,6 @@ package com.kodilla;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
@@ -15,8 +13,8 @@ public class GameStateService {
     private int doneMovesIterator;
     private Label infoLabel;
     private Label winnerLabel;
-    private boolean playable = false;
-    private boolean playerTurn = false;
+    private boolean playable;
+    private boolean playerTurn;
     private List<GameApp.Tile> tilesList = new ArrayList<>();
     ActionListener taskPerformer;
 
@@ -30,6 +28,7 @@ public class GameStateService {
 
     public void newGame() {
         clearBoard();
+
         playable = false;
         playerTurn = false;
         doneMovesIterator = 0;
@@ -39,15 +38,43 @@ public class GameStateService {
     }
 
     public void saveGame() {
+        FileWriter writer = createNewFile();
+        saveDataIntoFile(writer);
+        closeFile(writer);
+    }
+
+    public void loadGame(List<GameApp.Tile> tilesList, Button whoStartsBtn) {
+        int i;
+
+        newGame();
+        FileReader fr = loadFile();
+        List<Character> savedGame = readFile(fr);
+
+        if (savedGame != null && !savedGame.isEmpty()) {
+            setTileText(savedGame);
+
+            playable = true;
+            playerTurn = true;
+            doneMovesIterator = savedGame.get(9);
+            whoStartsBtn.setDisable(true);
+            infoLabel.setText("Game loaded");
+        } else if (infoLabel.getText().equals("")) {
+            infoLabel.setText("Problem with loading saved game");
+        }
+    }
+
+    private FileWriter createNewFile() {
         File file = new File("TicTacToeSavedGame.txt");
-        FileWriter writer = null;
 
         try {
-            writer = new FileWriter(file);
+            return new FileWriter(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
+    }
 
+    private void saveDataIntoFile(FileWriter writer) {
         String tileText;
 
         try {
@@ -61,11 +88,13 @@ public class GameStateService {
                 }
                 infoLabel.setText("Game saved");
             }
-
             writer.write("" + doneMovesIterator);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void closeFile(FileWriter writer) {
         try {
             writer.close();
         } catch (IOException e) {
@@ -78,49 +107,39 @@ public class GameStateService {
             tile.text.setText("");
     }
 
-    public void loadGame(List<GameApp.Tile> tilesList, Button whoStartsBtn) {
-        FileReader fr = null;
-        ArrayList<Character> savedGame = new ArrayList<>();
-        newGame();
-
+    private FileReader loadFile() {
         try {
-            fr = new FileReader("TicTacToeSavedGame.txt");
+            return new FileReader("TicTacToeSavedGame.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Loading File Warning: There is no file TicTacToeSavedGame.txt");
             infoLabel.setText("There is no saved game");
         }
+        return null;
+    }
 
-        int i;
+    private List<Character> readFile(FileReader fr) {
+        int i = 0;
+        ArrayList<Character> savedGame = new ArrayList<>();
+
         if (fr != null) {
             while (true) {
                 try {
                     if (!((i = fr.read()) != -1)) {
                         break;
                     }
-
                     savedGame.add((char) i);
                 } catch (IOException e) {
                     System.out.println("Loading File Warning");
                 }
             }
         }
+        return savedGame;
+    }
 
-        if (!savedGame.isEmpty()) {
-            playable = true;
-
-            for (int j = 0; j < 9; j++) {
-                if (!(savedGame.get(j).toString().equals(" "))) {
-                    tilesList.get(j).text.setText(savedGame.get(j).toString());
-                }
-            }
-
-            doneMovesIterator = savedGame.get(9);
-            playerTurn = true;
-            whoStartsBtn.setDisable(true);
-            infoLabel.setText("Game loaded");
-        } else {
-            if (infoLabel.getText().equals("")) {
-                infoLabel.setText("Problem with loading saved game");
+    private void setTileText(List<Character> savedGame) {
+        for (int j = 0; j < 9; j++) {
+            if (!(savedGame.get(j).toString().equals(" "))) {
+                tilesList.get(j).text.setText(savedGame.get(j).toString());
             }
         }
     }
